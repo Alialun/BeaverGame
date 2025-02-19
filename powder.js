@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "oil"
+const version = "diffusion fix"
 
 // Set canvas size
 canvas.width = 504;
@@ -67,7 +67,7 @@ const particleProperties = {
     {
         falls : true,
         weight : 104,
-        fluidity: 1,
+        fluidity: 0.7,
         powderity: 0,
         diffusionability: 1,
         color:"#794000",
@@ -216,15 +216,18 @@ function applyFluidity(xx, yy, particleKey)
         {
             let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
             let otherDiffusionability = particleProperties[grid[yy][xx + direction]]["diffusionability"]
-            let diffusionChance = Math.min(thisDiffusionability, otherDiffusionability);
-            if(Math.random() < diffusionChance)
+            if(!gridMoved[yy][xx + direction])
             {
-                let otherParticle = grid[yy][xx + direction];
-                grid[yy][xx + direction] = particleKey;
-                grid[yy][xx] = otherParticle;
-                gridMoved[yy][xx] = true;
-                gridMoved[yy][xx + direction] = true;
-                return true;
+                let diffusionChance = Math.min(thisDiffusionability, otherDiffusionability);
+                if(Math.random() < diffusionChance)
+                {
+                    let otherParticle = grid[yy][xx + direction];
+                    grid[yy][xx + direction] = particleKey;
+                    grid[yy][xx] = otherParticle;
+                    gridMoved[yy][xx] = true;
+                    gridMoved[yy][xx + direction] = true;
+                    return true;
+                }
             }
         }
     }
