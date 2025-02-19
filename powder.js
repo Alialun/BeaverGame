@@ -67,7 +67,7 @@ const particleProperties = {
     {
         falls : true,
         weight : 104,
-        fluidity: 0.7,
+        fluidity: 0.8,
         powderity: 0,
         diffusionability: 1,
         color:"#794000",
