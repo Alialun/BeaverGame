@@ -8,13 +8,23 @@ canvas.height = 504;
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 7; // 2x2 pixels per cell
+const GRID_SIZE = 4; // 2x2 pixels per cell
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
 const particleProperties = {
+    "EMPTY" : 
+    {
+        falls : true,
+        weight : 100,
+        fluidity: 100,
+        powderity: 100,
+        diffusionability: 100,
+        color: "#000000"
+    },
     "SAND" : 
     {
+        falls : true,
         weight : 112,
         fluidity: 0.01,
         powderity: 1,
@@ -23,21 +33,61 @@ const particleProperties = {
     },
     "WATER" : 
     {
+        falls : true,
         weight : 110,
         fluidity: 1,
         powderity: 0,
         diffusionability: 1,
         color: "#3498db"
     },
-    "EMPTY" : 
+    "WALL" : 
     {
-        weight : 100,
-        fluidity: 100,
-        powderity: 100,
-        diffusionability: 100,
-        color: "#000000"
+        falls : false,
+        weight : 500,
+        fluidity: 0,
+        powderity: 0,
+        diffusionability: 0,
+        color: "#aaaaaa"
     },
 }
+
+// Generate radio buttons dynamically
+const selectorDiv = document.getElementById("particleSelector");
+let selectedParticle = "SAND"; // Default selection
+
+// Generate buttons dynamically
+for (let type in particleProperties) {
+    const button = document.createElement("button");
+    button.textContent = type;
+    button.setAttribute("class","particleButton");
+    button.style.backgroundColor = particleProperties[type].color; // Set button color
+    button.style.color = "black"; // Ensure text is readable
+    button.dataset.type = type; // Store type in data attribute
+
+    // Default selected style
+    if (type === selectedParticle) {
+        button.style.border = "3px solid white";
+    }
+
+    // Button click event
+    button.addEventListener("click", function () {
+        selectedParticle = this.dataset.type;
+
+        // Reset all button styles
+        document.querySelectorAll("#particleSelector button").forEach(btn => {
+            btn.style.border = "none";
+        });
+
+        // Highlight selected button
+        this.style.border = "3px solid white";
+    });
+
+    selectorDiv.appendChild(button);
+}
+
+
+////////////// POWDER GAME LOGIC
+
 
 let grid = new Array(rows).fill().map(() => new Array(cols).fill("EMPTY"));
 let gridMoved = new Array(rows).fill().map(() => new Array(cols).fill(false));
@@ -46,34 +96,43 @@ let particleCount = 0;
 
 function applyGravity(xx, yy, particleKey)
 {
-    if (yy + 1 < rows && yy + 1 >= 0) {
-        if(!gridMoved[yy + 1][xx])
-        {
-            let particleBelow = grid[yy + 1][xx];
-            let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10);
-            if(Math.random() < gravitySwapChance)
+    if(particleProperties[particleKey]["falls"])
+    {
+        if (yy + 1 < rows && yy + 1 >= 0) {
+            if(!gridMoved[yy + 1][xx])
             {
-                grid[yy + 1][xx] = particleKey;
-                grid[yy][xx] = particleBelow;
-                gridMoved[yy + 1][xx] = true;
-                gridMoved[yy][xx] = true;
-                return true;
+                let particleBelow = grid[yy + 1][xx];
+                if(particleProperties[particleBelow]["falls"])
+                {
+                    let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10);
+                    if(Math.random() < gravitySwapChance)
+                    {
+                        grid[yy + 1][xx] = particleKey;
+                        grid[yy][xx] = particleBelow;
+                        gridMoved[yy + 1][xx] = true;
+                        gridMoved[yy][xx] = true;
+                        return true;
+                    }
+                }
             }
         }
-    }
 
-    if (yy - 1 < rows && yy - 1 >= 0) {
-        if(!gridMoved[yy - 1][xx])
-        {
-            let particleAbove = grid[yy - 1][xx];
-            let gravitySwapChance = ((particleProperties[particleAbove]["weight"]-particleProperties[particleKey]["weight"])/10);
-            if(Math.random() < gravitySwapChance)
+        if (yy - 1 < rows && yy - 1 >= 0) {
+            if(!gridMoved[yy - 1][xx])
             {
-                grid[yy - 1][xx] = particleKey;
-                grid[yy][xx] = particleAbove;
-                gridMoved[yy - 1][xx] = true;
-                gridMoved[yy][xx] = true;
-                return true;
+                let particleAbove = grid[yy - 1][xx];
+                if(particleProperties[particleAbove]["falls"])
+                {
+                    let gravitySwapChance = ((particleProperties[particleAbove]["weight"]-particleProperties[particleKey]["weight"])/10);
+                    if(Math.random() < gravitySwapChance)
+                    {
+                        grid[yy - 1][xx] = particleKey;
+                        grid[yy][xx] = particleAbove;
+                        gridMoved[yy - 1][xx] = true;
+                        gridMoved[yy][xx] = true;
+                        return true;
+                    }
+                }
             }
         }
     }
@@ -227,26 +286,25 @@ function drawGrid() {
 }
 
 canvas.addEventListener("mousemove", (event) => {
-    if (event.buttons === 1) { // Left click
-        let x = Math.floor(event.offsetX / GRID_SIZE);
-        let y = Math.floor(event.offsetY / GRID_SIZE);
-        grid[y][x] = "SAND";
-    } else if (event.buttons === 2) { // Right click
-        let x = Math.floor(event.offsetX / GRID_SIZE);
-        let y = Math.floor(event.offsetY / GRID_SIZE);
-        grid[y][x] = "WATER";
-    }
-}, { passive: false });
+    event.preventDefault(); // Ensure the default context menu doesn't interfere
 
-canvas.addEventListener("touchmove", (event) => {
-    if (event.buttons === 1) { // Left click
+    if (event.buttons === 1) {
         let x = Math.floor(event.offsetX / GRID_SIZE);
         let y = Math.floor(event.offsetY / GRID_SIZE);
-        grid[y][x] = "SAND";
-    } else if (event.buttons === 2) { // Right click
-        let x = Math.floor(event.offsetX / GRID_SIZE);
-        let y = Math.floor(event.offsetY / GRID_SIZE);
-        grid[y][x] = "WATER";
+        let type = selectedParticle;
+
+        // Loop over a 3x3 area centered on (x, y)
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                let newX = x + dx;
+                let newY = y + dy;
+
+                // Ensure newX and newY are within grid bounds
+                if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
+                    grid[newY][newX] = type;
+                }
+            }
+        }
     }
 }, { passive: false });
 
