@@ -166,7 +166,7 @@ canvas.addEventListener("mousemove", (event) => {
         let y = Math.floor(event.offsetY / GRID_SIZE);
         grid[y][x] = "WATER";
     }
-});
+}, { passive: false });
 
 // Prevent right-click menu
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -179,3 +179,16 @@ function update() {
 
 // Start the game loop
 update();
+
+let fps = 0;
+let lastTime = performance.now();
+
+function countFPS() {
+    let now = performance.now();
+    fps = Math.round(1000 / (now - lastTime));
+    lastTime = now;
+    console.log(`FPS: ${fps}`);
+    requestAnimationFrame(countFPS);
+}
+
+countFPS();
