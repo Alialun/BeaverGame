@@ -17,19 +17,28 @@ const particleProperties = {
     {
         falls : true,
         weight : 100,
-        fluidity: 100,
-        powderity: 100,
-        diffusionability: 100,
+        fluidity: 1,
+        powderity: 1,
+        diffusionability: 1,
         color: "#000000"
     },
     "SAND" : 
     {
         falls : true,
         weight : 112,
-        fluidity: 0.01,
+        fluidity: 0.002,
         powderity: 1,
         diffusionability: 0,
         color: "#fffb00"
+    },
+    "ROCKS" : 
+    {
+        falls : true,
+        weight : 150,
+        fluidity: 0,
+        powderity: 0,
+        diffusionability: 0,
+        color: "#505050"
     },
     "WATER" : 
     {
@@ -104,7 +113,7 @@ function applyGravity(xx, yy, particleKey)
                 let particleBelow = grid[yy + 1][xx];
                 if(particleProperties[particleBelow]["falls"])
                 {
-                    let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10);
+                    let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10)*Math.max(particleProperties[particleKey]["fluidity"],particleProperties[particleBelow]["fluidity"]);
                     if(Math.random() < gravitySwapChance)
                     {
                         grid[yy + 1][xx] = particleKey;
@@ -123,7 +132,7 @@ function applyGravity(xx, yy, particleKey)
                 let particleAbove = grid[yy - 1][xx];
                 if(particleProperties[particleAbove]["falls"])
                 {
-                    let gravitySwapChance = ((particleProperties[particleAbove]["weight"]-particleProperties[particleKey]["weight"])/10);
+                    let gravitySwapChance = ((particleProperties[particleAbove]["weight"]-particleProperties[particleKey]["weight"])/10)*Math.max(particleProperties[particleKey]["fluidity"],particleProperties[particleAbove]["fluidity"]);
                     if(Math.random() < gravitySwapChance)
                     {
                         grid[yy - 1][xx] = particleKey;
