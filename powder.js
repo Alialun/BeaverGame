@@ -10,7 +10,7 @@ canvas.height = 504;
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 6; // 2x2 pixels per cell
+const GRID_SIZE = 6;
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
