@@ -8,7 +8,7 @@ canvas.height = 504;
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 4; // 2x2 pixels per cell
+const GRID_SIZE = 6; // 2x2 pixels per cell
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
@@ -20,7 +20,9 @@ const particleProperties = {
         fluidity: 1,
         powderity: 1,
         diffusionability: 1,
-        color: "#000000"
+        color: "#000000",
+        specialBehavoir: function() {},
+        interactions:{}
     },
     "SAND" : 
     {
@@ -28,8 +30,10 @@ const particleProperties = {
         weight : 112,
         fluidity: 0.002,
         powderity: 1,
-        diffusionability: 0,
-        color: "#fffb00"
+        diffusionability: 0.1,
+        color: "#fffb00",
+        specialBehavoir: function() {},
+        interactions:{}
     },
     "ROCKS" : 
     {
@@ -37,8 +41,14 @@ const particleProperties = {
         weight : 150,
         fluidity: 0,
         powderity: 0.0002,
-        diffusionability: 0,
-        color: "#505050"
+        diffusionability: 0.0004,
+        color: "#505050",
+        specialBehavoir: function() {},
+        interactions:{
+            "WATER" : function(x, y, otherX, otherY) {
+                if(Math.random() < 0.002) grid[y][x] = "SAND"
+            }
+        }
     },
     "WATER" : 
     {
@@ -47,7 +57,9 @@ const particleProperties = {
         fluidity: 1,
         powderity: 0,
         diffusionability: 1,
-        color: "#3498db"
+        color: "#3498db",
+        specialBehavoir: function() {},
+        interactions:{}
     },
     "WALL" : 
     {
@@ -56,7 +68,9 @@ const particleProperties = {
         fluidity: 0,
         powderity: 0,
         diffusionability: 0,
-        color: "#aaaaaa"
+        color: "#aaaaaa",
+        specialBehavoir: function() {},
+        interactions:{}
     },
 }
 
@@ -171,11 +185,12 @@ function applyGravity(xx, yy, particleKey)
 
 function applyFluidity(xx, yy, particleKey)
 {
-    if(Math.random() < particleProperties[particleKey]["fluidity"])
-    {
-        let direction = Math.random() < 0.5 ? 1 : -1;
-        if (xx + direction >= 0 && xx + direction < cols) {
-            if(grid[yy][xx + direction] === "EMPTY")
+    
+    let direction = Math.random() < 0.5 ? 1 : -1;
+    if (xx + direction >= 0 && xx + direction < cols) {
+        if(grid[yy][xx + direction] === "EMPTY")
+        {
+            if(Math.random() < particleProperties[particleKey]["fluidity"])
             {
                 grid[yy][xx + direction] = particleKey;
                 gridMoved[yy][xx + direction] = true;
@@ -184,13 +199,18 @@ function applyFluidity(xx, yy, particleKey)
                 return true;
             }
         }
-        else if (xx - direction >= 0 && xx - direction < cols) {
-            if(grid[yy][xx - direction] === "EMPTY")
+        else
+        {
+            let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
+            let otherDiffusionability = particleProperties[grid[yy][xx + direction]]["diffusionability"]
+            let diffusionChance = Math.min(thisDiffusionability, otherDiffusionability);
+            if(Math.random() < diffusionChance)
             {
-                grid[yy][xx - direction] = particleKey;
-                gridMoved[yy][xx - direction] = true;
-                grid[yy][xx] = "EMPTY";
-                //applyGravity(xx,yy,particleKey);
+                let otherParticle = grid[yy][xx + direction];
+                grid[yy][xx + direction] = particleKey;
+                grid[yy][xx] = otherParticle;
+                gridMoved[yy][xx] = true;
+                gridMoved[yy][xx + direction] = true;
                 return true;
             }
         }
@@ -217,6 +237,33 @@ function applyPowderity(xx, yy, particleKey)
         }
     }
     return false;
+}
+
+function handleInteraction(x, y, otherX, otherY) {
+    let thisParticle = grid[y][x];
+    let otherParticle = grid[otherY][otherX];
+    if (particleProperties[thisParticle] && particleProperties[thisParticle].interactions[otherParticle]) {
+        particleProperties[thisParticle].interactions[otherParticle](x, y, otherX, otherY);
+    }
+}
+
+function applyInteractions(x,y){
+    let otherX = x;
+    let otherY = y + 1;
+    if(otherY < cols)
+        handleInteraction(x,y,otherX,otherY);
+    otherX = x-1;
+    otherY = y;
+    if(otherX >= 0)
+        handleInteraction(x,y,otherX,otherY);
+    otherX = x + 1;
+    otherY = y;
+    if(otherX < rows)
+        handleInteraction(x,y,otherX,otherY);
+    otherX = x;
+    otherY = y - 1;
+    if(otherY >= 0)
+        handleInteraction(x,y,otherX,otherY);
 }
 
 function updateParticles() {
@@ -253,7 +300,10 @@ function updateParticles() {
         {
             let particle = grid[y][x];
 
+
+
             if (particle !== "EMPTY") {
+                applyInteractions(x,y)
                 if(!applyGravity(x,y,particle))
                 if(!applyPowderity(x,y,particle))
                 if(!applyFluidity(x,y,particle))
@@ -294,28 +344,62 @@ function drawGrid() {
     }*/
 }
 
+let isTouching = false; // Track touch state
+
+canvas.addEventListener("mousedown", () => {
+    isTouching = true;
+});
+canvas.addEventListener("mouseup", () => {
+    isTouching = false;
+});
+canvas.addEventListener("mouseleave", () => {
+    isTouching = false;
+});
+
+// Mouse Support
 canvas.addEventListener("mousemove", (event) => {
-    event.preventDefault(); // Ensure the default context menu doesn't interfere
-
     if (event.buttons === 1) {
-        let x = Math.floor(event.offsetX / GRID_SIZE);
-        let y = Math.floor(event.offsetY / GRID_SIZE);
-        let type = selectedParticle;
+        drawParticles(event.offsetX, event.offsetY);
+    }
+}, { passive: false });
 
-        // Loop over a 3x3 area centered on (x, y)
-        for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-                let newX = x + dx;
-                let newY = y + dy;
+// Touch Support
+canvas.addEventListener("touchstart", (event) => {
+    isTouching = true;
+    let touch = event.touches[0];
+    drawParticles(touch.clientX - canvas.offsetLeft, touch.clientY - canvas.offsetTop);
+}, { passive: false });
 
-                // Ensure newX and newY are within grid bounds
-                if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
-                    grid[newY][newX] = type;
-                }
+canvas.addEventListener("touchmove", (event) => {
+    if (isTouching) {
+        let touch = event.touches[0];
+        drawParticles(touch.clientX - canvas.offsetLeft, touch.clientY - canvas.offsetTop);
+    }
+}, { passive: false });
+
+canvas.addEventListener("touchend", () => {
+    isTouching = false;
+});
+
+// Function to draw particles
+function drawParticles(x, y) {
+    let gridX = Math.floor(x / GRID_SIZE);
+    let gridY = Math.floor(y / GRID_SIZE);
+    let type = selectedParticle;
+
+    // Loop over a 3x3 area centered on (gridX, gridY)
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            let newX = gridX + dx;
+            let newY = gridY + dy;
+
+            // Ensure newX and newY are within grid bounds
+            if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
+                grid[newY][newX] = type;
             }
         }
     }
-}, { passive: false });
+}
 
 // Prevent right-click menu
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
