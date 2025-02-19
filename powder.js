@@ -236,6 +236,18 @@ canvas.addEventListener("mousemove", (event) => {
     }
 }, { passive: false });
 
+canvas.addEventListener("touchmove", (event) => {
+    if (event.buttons === 1) { // Left click
+        let x = Math.floor(event.offsetX / GRID_SIZE);
+        let y = Math.floor(event.offsetY / GRID_SIZE);
+        grid[y][x] = "SAND";
+    } else if (event.buttons === 2) { // Right click
+        let x = Math.floor(event.offsetX / GRID_SIZE);
+        let y = Math.floor(event.offsetY / GRID_SIZE);
+        grid[y][x] = "WATER";
+    }
+}, { passive: false });
+
 // Prevent right-click menu
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
