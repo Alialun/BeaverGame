@@ -2,11 +2,13 @@ const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
 // Set canvas size
-canvas.width = 600;
-canvas.height = 400;
+canvas.width = 504;
+canvas.height = 504;
+
+const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 4; // 2x2 pixels per cell
+const GRID_SIZE = 7; // 2x2 pixels per cell
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
@@ -209,7 +211,7 @@ function drawGrid() {
     }
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(particleCount + " particles TOUCH", 10, 15);
+    ctx.fillText(particleCount + " particles", 10, 15);
 
     /*for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
