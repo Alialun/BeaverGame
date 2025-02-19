@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "diffusion fix"
+const version = "water speedup"
 
 // Set canvas size
 canvas.width = 504;
@@ -57,7 +57,7 @@ const particleProperties = {
         falls : true,
         weight : 110,
         fluidity: 1,
-        powderity: 0,
+        powderity: 1,
         diffusionability: 1,
         color: "#3498db",
         specialBehavoir: function() {},
@@ -68,7 +68,7 @@ const particleProperties = {
         falls : true,
         weight : 104,
         fluidity: 0.8,
-        powderity: 0,
+        powderity: 0.8,
         diffusionability: 1,
         color:"#794000",
         specialBehavoir: function() {},
