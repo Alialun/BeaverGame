@@ -10,18 +10,11 @@ const GRID_SIZE = 4; // 2x2 pixels per cell
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
-
-const particles = {
-    "EMPTY" : 0,
-    "SAND" : 1,
-    "WATER" : 2,
-}
-
 const particleProperties = {
     "SAND" : 
     {
         gravity : 1,
-        weight : 1,
+        weight : 10,
         fluidity: 0.01,
         powderity: 1,
         diffusionability: 0,
@@ -57,6 +50,26 @@ function applyGravity(xx, yy, particleKey)
     return false;
 }
 
+function applyGravitySwapping(xx, yy, particleKey)
+{
+    if(yy + 1 < rows)
+    {
+        let particleBelow = grid[yy + 1][xx];
+        if(particleBelow !== "EMPTY")
+        {
+            let gravitySwapChance = ((particleProperties[particleKey]["gravity"]*particleProperties[particleKey]["weight"]) - (particleProperties[particleBelow]["gravity"]*particleProperties[particleBelow]["weight"]))
+            if(Math.random() < gravitySwapChance)
+            {
+                grid[yy + 1][xx] = particleKey;
+                grid[yy][xx] = particleBelow;
+                gridMoved[yy + 1][xx] = true;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function applyFluidity(xx, yy, particleKey)
 {
     if(Math.random() < particleProperties[particleKey]["fluidity"])
@@ -69,6 +82,7 @@ function applyFluidity(xx, yy, particleKey)
                 gridMoved[yy][xx + direction] = true;
                 grid[yy][xx] = "EMPTY";
                 applyGravity(xx,yy,particleKey);
+                return true;
             }
         }
         else if (xx - direction >= 0 && xx - direction < cols) {
@@ -78,9 +92,11 @@ function applyFluidity(xx, yy, particleKey)
                 gridMoved[yy][xx - direction] = true;
                 grid[yy][xx] = "EMPTY";
                 applyGravity(xx,yy,particleKey);
+                return true;
             }
         }
     }
+    return false;
 }
 
 function applyPowderity(xx, yy, particleKey)
@@ -92,13 +108,16 @@ function applyPowderity(xx, yy, particleKey)
             grid[yy + 1][xx + direction] = particleKey;
             gridMoved[yy + 1][xx + direction] = true;
             grid[yy][xx] = "EMPTY";
+            return true;
         } 
         else if (yy + 1 < rows && xx - direction >= 0 && grid[yy + 1][xx - direction] === "EMPTY") {
             grid[yy + 1][xx - direction] = particleKey;
             gridMoved[yy + 1][xx + direction] = true;
             grid[yy][xx] = "EMPTY";
+            return true;
         }
     }
+    return false;
 }
 
 function updateParticles() {
@@ -109,7 +128,7 @@ function updateParticles() {
     //vezmu všechny particly a dám je do pole
     for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
-            if (grid[y][x] !== particles["EMPTY"]) {
+            if (grid[y][x] !== "EMPTY") {
                 particlesToMove.push({ x, y, type: grid[y][x] });
             }
         }
@@ -128,13 +147,10 @@ function updateParticles() {
             let particle = grid[y][x];
 
             if (particle !== "EMPTY") {
-                // Move sand down
                 if(!applyGravity(x,y,particle))
-                {
-                // Move diagonally
-                    applyPowderity(x,y,particle);
-                    applyFluidity(x,y,particle);
-                }
+                if(!applyPowderity(x,y,particle))
+                if(!applyFluidity(x,y,particle))
+                {applyGravitySwapping(x, y, particle)}
             } 
         }
     }
@@ -179,16 +195,3 @@ function update() {
 
 // Start the game loop
 update();
-
-let fps = 0;
-let lastTime = performance.now();
-
-function countFPS() {
-    let now = performance.now();
-    fps = Math.round(1000 / (now - lastTime));
-    lastTime = now;
-    console.log(`FPS: ${fps}`);
-    requestAnimationFrame(countFPS);
-}
-
-countFPS();
