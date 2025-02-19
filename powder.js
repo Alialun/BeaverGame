@@ -13,8 +13,7 @@ const rows = canvas.height / GRID_SIZE;
 const particleProperties = {
     "SAND" : 
     {
-        gravity : 1,
-        weight : 10,
+        weight : 112,
         fluidity: 0.01,
         powderity: 1,
         diffusionability: 0,
@@ -22,35 +21,64 @@ const particleProperties = {
     },
     "WATER" : 
     {
-        gravity : 1,
-        weight : 1,
+        weight : 110,
         fluidity: 1,
         powderity: 0,
         diffusionability: 1,
         color: "#3498db"
-    }
+    },
+    "EMPTY" : 
+    {
+        weight : 100,
+        fluidity: 100,
+        powderity: 100,
+        diffusionability: 100,
+        color: "#000000"
+    },
 }
 
 let grid = new Array(rows).fill().map(() => new Array(cols).fill("EMPTY"));
 let gridMoved = new Array(rows).fill().map(() => new Array(cols).fill(false));
 
+let particleCount = 0;
+
 function applyGravity(xx, yy, particleKey)
 {
-    let gravity = particleProperties[particleKey]["gravity"];
-    if (yy + 1 * Math.sign(gravity) < rows && yy + 1 * Math.sign(gravity) >= 0 && grid[yy + 1 * Math.sign(gravity)][xx] === "EMPTY") {
-        if(Math.random() < Math.abs(gravity))
+    if (yy + 1 < rows && yy + 1 >= 0) {
+        if(!gridMoved[yy + 1][xx])
         {
-            grid[yy + 1 * Math.sign(gravity)][xx] = particleKey;
-            gridMoved[yy + 1 * Math.sign(gravity)][xx] = true;
-            grid[yy][xx] = "EMPTY";
+            let particleBelow = grid[yy + 1][xx];
+            let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10);
+            if(Math.random() < gravitySwapChance)
+            {
+                grid[yy + 1][xx] = particleKey;
+                grid[yy][xx] = particleBelow;
+                gridMoved[yy + 1][xx] = true;
+                gridMoved[yy][xx] = true;
+                return true;
+            }
         }
-        return true;
-    
+    }
+
+    if (yy - 1 < rows && yy - 1 >= 0) {
+        if(!gridMoved[yy - 1][xx])
+        {
+            let particleAbove = grid[yy - 1][xx];
+            let gravitySwapChance = ((particleProperties[particleAbove]["weight"]-particleProperties[particleKey]["weight"])/10);
+            if(Math.random() < gravitySwapChance)
+            {
+                grid[yy - 1][xx] = particleKey;
+                grid[yy][xx] = particleAbove;
+                gridMoved[yy - 1][xx] = true;
+                gridMoved[yy][xx] = true;
+                return true;
+            }
+        }
     }
     return false;
 }
 
-function applyGravitySwapping(xx, yy, particleKey)
+/*function applyGravitySwapping(xx, yy, particleKey)
 {
     if(yy + 1 < rows)
     {
@@ -62,13 +90,14 @@ function applyGravitySwapping(xx, yy, particleKey)
             {
                 grid[yy + 1][xx] = particleKey;
                 grid[yy][xx] = particleBelow;
+                gridMoved[yy][xx] = true;
                 gridMoved[yy + 1][xx] = true;
                 return true;
             }
         }
     }
     return false;
-}
+}*/
 
 function applyFluidity(xx, yy, particleKey)
 {
@@ -81,7 +110,7 @@ function applyFluidity(xx, yy, particleKey)
                 grid[yy][xx + direction] = particleKey;
                 gridMoved[yy][xx + direction] = true;
                 grid[yy][xx] = "EMPTY";
-                applyGravity(xx,yy,particleKey);
+                //applyGravity(xx,yy,particleKey);
                 return true;
             }
         }
@@ -91,7 +120,7 @@ function applyFluidity(xx, yy, particleKey)
                 grid[yy][xx - direction] = particleKey;
                 gridMoved[yy][xx - direction] = true;
                 grid[yy][xx] = "EMPTY";
-                applyGravity(xx,yy,particleKey);
+                //applyGravity(xx,yy,particleKey);
                 return true;
             }
         }
@@ -121,7 +150,12 @@ function applyPowderity(xx, yy, particleKey)
 }
 
 function updateParticles() {
-    let gridMoved = new Array(rows).fill().map(() => new Array(cols).fill(false));
+    
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            gridMoved[y][x] = false;
+        }
+    }
 
     let particlesToMove = [];
     
@@ -129,10 +163,12 @@ function updateParticles() {
     for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
             if (grid[y][x] !== "EMPTY") {
-                particlesToMove.push({ x, y, type: grid[y][x] });
+                particlesToMove.push({ x, y });
             }
         }
     }
+
+    particleCount = particlesToMove.length;
 
     //pole zamíchám nějakym random algoritmem, co jsem našel na netu :)
     for (let i = particlesToMove.length - 1; i > 0; i--) {
@@ -142,6 +178,7 @@ function updateParticles() {
 
     //zpracuju všechny particly
     for (let { x, y } of particlesToMove) {
+        //console.log(particlesToMove.length)
         if(!gridMoved[y][x])
         {
             let particle = grid[y][x];
@@ -150,7 +187,7 @@ function updateParticles() {
                 if(!applyGravity(x,y,particle))
                 if(!applyPowderity(x,y,particle))
                 if(!applyFluidity(x,y,particle))
-                {applyGravitySwapping(x, y, particle)}
+                {}
             } 
         }
     }
@@ -170,6 +207,21 @@ function drawGrid() {
             ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
         }
     }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(particleCount + " particles", 10, 15);
+
+    /*for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            if (gridMoved[y][x]===true) {
+                ctx.fillStyle = "#ff0000";
+            } else {
+                continue;
+            }
+
+            ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        }
+    }*/
 }
 
 canvas.addEventListener("mousemove", (event) => {
