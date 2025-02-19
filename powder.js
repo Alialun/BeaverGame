@@ -36,7 +36,7 @@ const particleProperties = {
         falls : true,
         weight : 150,
         fluidity: 0,
-        powderity: 0,
+        powderity: 0.0002,
         diffusionability: 0,
         color: "#505050"
     },
