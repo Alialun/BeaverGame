@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "water speedup"
+const version = "black hole"
 
 // Set canvas size
 canvas.width = 504;
@@ -85,6 +85,22 @@ const particleProperties = {
         specialBehavoir: function() {},
         interactions:{}
     },
+    "BLACK_HOLE" : 
+    {
+        falls : false,
+        weight : 500,
+        fluidity: 0,
+        powderity: 0,
+        diffusionability: 0,
+        color: "#2c002a",
+        specialBehavoir: function() {},
+        interactions:{
+            "ANY" : function(x, y, otherX, otherY) {
+                if(particleProperties[grid[otherY][otherX]]["falls"])
+                    grid[otherY][otherX] = "EMPTY";
+            }
+        }
+    },
 }
 
 // Generate radio buttons dynamically
@@ -97,7 +113,7 @@ for (let type in particleProperties) {
     button.textContent = type;
     button.setAttribute("class","particleButton");
     button.style.backgroundColor = particleProperties[type].color; // Set button color
-    button.style.color = "black"; // Ensure text is readable
+    button.style.color = getLuminance(particleProperties[type].color) > 0.5 ? "black" : "white"; // Ensure text is readable
     button.dataset.type = type; // Store type in data attribute
 
     // Default selected style
@@ -120,7 +136,15 @@ for (let type in particleProperties) {
 
     selectorDiv.appendChild(button);
 }
+function getLuminance(hex) {
+    // Convert hex to RGB
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
 
+    // Calculate relative luminance (per W3C standard)
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
 
 ////////////// POWDER GAME LOGIC
 
@@ -260,6 +284,10 @@ function handleInteraction(x, y, otherX, otherY) {
     let otherParticle = grid[otherY][otherX];
     if (particleProperties[thisParticle] && particleProperties[thisParticle].interactions[otherParticle]) {
         particleProperties[thisParticle].interactions[otherParticle](x, y, otherX, otherY);
+    }
+    else
+    if(particleProperties[thisParticle] && particleProperties[thisParticle].interactions["ANY"]){
+        particleProperties[thisParticle].interactions["ANY"](x, y, otherX, otherY);
     }
 }
 

@@ -23,7 +23,7 @@ button {
 }
 
 .particleButton {
-    width: 120px; /* Fixed width */
+    width: 150px; /* Fixed width */
     height: 50px; /* Fixed height to prevent resizing */
 }
 
