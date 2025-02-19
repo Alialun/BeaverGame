@@ -6,7 +6,7 @@ body {
     margin: 0;
     padding: 0;
 }
-
+ 
 .container {
     margin-top: 100px;
 }
@@ -97,3 +97,9 @@ button:hover {
 .tooltip p {
     margin: 5px 0;
 }  
+
+canvas 
+{ 
+    background: black; 
+    display: inline;
+}
