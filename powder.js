@@ -1,6 +1,8 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
+const version = "oil"
+
 // Set canvas size
 canvas.width = 504;
 canvas.height = 504;
@@ -16,7 +18,7 @@ const particleProperties = {
     "EMPTY" : 
     {
         falls : true,
-        weight : 100,
+        weight : 50,
         fluidity: 1,
         powderity: 1,
         diffusionability: 1,
@@ -58,6 +60,17 @@ const particleProperties = {
         powderity: 0,
         diffusionability: 1,
         color: "#3498db",
+        specialBehavoir: function() {},
+        interactions:{}
+    },
+    "OIL" : 
+    {
+        falls : true,
+        weight : 104,
+        fluidity: 1,
+        powderity: 0,
+        diffusionability: 1,
+        color:"#794000",
         specialBehavoir: function() {},
         interactions:{}
     },
@@ -329,7 +342,7 @@ function drawGrid() {
     }
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(particleCount + " particles", 10, 15);
+    ctx.fillText(particleCount + " particles - "+version+" version", 10, 15);
 
     /*for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
