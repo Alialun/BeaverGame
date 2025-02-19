@@ -209,7 +209,7 @@ function drawGrid() {
     }
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(particleCount + " particles", 10, 15);
+    ctx.fillText(particleCount + " particles TOUCH", 10, 15);
 
     /*for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
