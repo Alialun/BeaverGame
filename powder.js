@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "white hole"
+const version = "dust diffusion"
 
 // Set canvas size
 canvas.width = 504;
@@ -51,6 +51,17 @@ const particleProperties = {
                 if(Math.random() < 0.002) grid[y][x] = "SAND"
             }
         }
+    },
+    "DUST" : 
+    {
+        falls : true,
+        weight : 110,
+        fluidity: 0.00002,
+        powderity: 1,
+        diffusionability: 0.002,
+        color: "#909090",
+        specialBehavoir: null,
+        interactions:{}
     },
     "WATER" : 
     {
@@ -108,7 +119,7 @@ const particleProperties = {
         fluidity: 0,
         powderity: 0,
         diffusionability: 0,
-        color: "#fcfffa",
+        color:"#fbd3ff",
         specialBehavoir: function(x, y) {
             if(dataLayer[y][x]["whiteHoleParticle"] !== null)
             {
@@ -248,8 +259,26 @@ let particleCount = 0;
 
 function applyGravity(xx, yy, particleKey)
 {
+    if (yy + 1 < rows && yy + 1 >= 0) {
+        let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
+        let otherDiffusionability = particleProperties[grid[yy+1][xx]]["diffusionability"]
+        if(!gridMoved[yy+1][xx] && particleProperties[grid[yy+1][xx]]["weight"] <= particleProperties[particleKey]["weight"])
+        {
+            let diffusionChance = Math.min(thisDiffusionability, otherDiffusionability);
+            if(Math.random() < diffusionChance)
+            {
+                let otherParticle = grid[yy+1][xx];
+                grid[yy+1][xx] = particleKey;
+                grid[yy][xx] = otherParticle;
+                gridMoved[yy][xx] = true;
+                gridMoved[yy+1][xx] = true;
+                return true;
+            }
+        }
+    }
     if(particleProperties[particleKey]["falls"])
     {
+
         if (yy + 1 < rows && yy + 1 >= 0) {
             if(!gridMoved[yy + 1][xx])
             {
