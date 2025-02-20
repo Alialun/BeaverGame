@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "black hole"
+const version = "white hole"
 
 // Set canvas size
 canvas.width = 504;
@@ -23,7 +23,7 @@ const particleProperties = {
         powderity: 1,
         diffusionability: 1,
         color: "#000000",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{}
     },
     "SAND" : 
@@ -34,7 +34,7 @@ const particleProperties = {
         powderity: 1,
         diffusionability: 0.1,
         color: "#fffb00",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{}
     },
     "ROCKS" : 
@@ -45,7 +45,7 @@ const particleProperties = {
         powderity: 0.0002,
         diffusionability: 0.0004,
         color: "#505050",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{
             "WATER" : function(x, y, otherX, otherY) {
                 if(Math.random() < 0.002) grid[y][x] = "SAND"
@@ -60,7 +60,7 @@ const particleProperties = {
         powderity: 1,
         diffusionability: 1,
         color: "#3498db",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{}
     },
     "OIL" : 
@@ -71,7 +71,7 @@ const particleProperties = {
         powderity: 0.8,
         diffusionability: 1,
         color:"#794000",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{}
     },
     "WALL" : 
@@ -82,7 +82,7 @@ const particleProperties = {
         powderity: 0,
         diffusionability: 0,
         color: "#aaaaaa",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{}
     },
     "BLACK_HOLE" : 
@@ -93,11 +93,98 @@ const particleProperties = {
         powderity: 0,
         diffusionability: 0,
         color: "#2c002a",
-        specialBehavoir: function() {},
+        specialBehavoir: null,
         interactions:{
             "ANY" : function(x, y, otherX, otherY) {
                 if(particleProperties[grid[otherY][otherX]]["falls"])
                     grid[otherY][otherX] = "EMPTY";
+            }
+        }
+    },
+    "WHITE_HOLE" : 
+    {
+        falls : false,
+        weight : 500,
+        fluidity: 0,
+        powderity: 0,
+        diffusionability: 0,
+        color: "#fcfffa",
+        specialBehavoir: function(x, y) {
+            if(dataLayer[y][x]["whiteHoleParticle"] !== null)
+            {
+                if (y + 1 < rows && y + 1 >= 0)
+                {
+                    if(grid[y+1][x]=="EMPTY")
+                    {
+                        if(Math.random() < 0.02) grid[y+1][x] = dataLayer[y][x]["whiteHoleParticle"]
+                    }
+                }
+                if (y - 1 < rows && y - 1 >= 0)
+                {
+                    if(grid[y-1][x]=="EMPTY")
+                    {
+                        if(Math.random() < 0.02) grid[y-1][x] = dataLayer[y][x]["whiteHoleParticle"]
+                    }
+                }
+                if (x + 1 < rows && x + 1 >= 0)
+                {
+                    if(grid[y][x+1]=="EMPTY")
+                    {
+                        if(Math.random() < 0.02) grid[y][x+1] = dataLayer[y][x]["whiteHoleParticle"]
+                    }
+                }
+                if (x - 1 < rows && x - 1 >= 0)
+                {
+                    if(grid[y][x-1]=="EMPTY")
+                    {
+                        if(Math.random() < 0.02) grid[y][x-1] = dataLayer[y][x]["whiteHoleParticle"]
+                    }
+                }
+            }
+            else
+            {
+                if (y + 1 < rows && y + 1 >= 0)
+                    {
+                        if(dataLayer[y+1][x]["whiteHoleParticle"]!==null)
+                        {
+                            dataLayer[y][x]["whiteHoleParticle"]= dataLayer[y+1][x]["whiteHoleParticle"];
+                        }
+                    }
+                    if (y - 1 < rows && y - 1 >= 0)
+                    {
+                        if(dataLayer[y-1][x]["whiteHoleParticle"]!==null)
+                        {
+                            dataLayer[y][x]["whiteHoleParticle"]= dataLayer[y-1][x]["whiteHoleParticle"];
+                        }
+                    }
+                    if (x + 1 < rows && x + 1 >= 0)
+                    {
+                        if(dataLayer[y][x+1]["whiteHoleParticle"]!==null)
+                        {
+                            dataLayer[y][x]["whiteHoleParticle"]= dataLayer[y][x+1]["whiteHoleParticle"];
+                        }
+                    }
+                    if (x - 1 < rows && x - 1 >= 0)
+                    {
+                        if(dataLayer[y][x-1]["whiteHoleParticle"]!==null)
+                        {
+                            dataLayer[y][x]["whiteHoleParticle"]= dataLayer[y][x-1]["whiteHoleParticle"];
+                        }
+                    }
+            }
+        },
+        interactions:{
+            "ANY" : function(x, y, otherX, otherY) {
+                if(dataLayer[y][x]["whiteHoleParticle"] == null)
+                {
+                    if(particleProperties[grid[otherY][otherX]] && grid[otherY][otherX]!="EMPTY")
+                    {
+                        if(particleProperties[grid[otherY][otherX]]["falls"])
+                        {
+                            dataLayer[y][x]["whiteHoleParticle"] = grid[otherY][otherX];
+                        }
+                    }
+                }
             }
         }
     },
@@ -151,6 +238,11 @@ function getLuminance(hex) {
 
 let grid = new Array(rows).fill().map(() => new Array(cols).fill("EMPTY"));
 let gridMoved = new Array(rows).fill().map(() => new Array(cols).fill(false));
+let dataLayer = Array.from({ length: rows }, () => 
+    Array.from({ length: cols }, () => ({
+      whiteHoleParticle: null
+    }))
+  );
 
 let particleCount = 0;
 
@@ -310,6 +402,14 @@ function applyInteractions(x,y){
         handleInteraction(x,y,otherX,otherY);
 }
 
+function handleSpecialBehavoir(x,y)
+{
+    if(particleProperties[grid[y][x]]["specialBehavoir"])
+    {
+        particleProperties[grid[y][x]].specialBehavoir(x,y);
+    }
+}
+
 function updateParticles() {
     
     for (let y = 0; y < rows; y++) {
@@ -348,11 +448,24 @@ function updateParticles() {
 
             if (particle !== "EMPTY") {
                 applyInteractions(x,y)
+                handleSpecialBehavoir(x,y)
                 if(!applyGravity(x,y,particle))
                 if(!applyPowderity(x,y,particle))
                 if(!applyFluidity(x,y,particle))
                 {}
             } 
+        }
+    }
+}
+
+function updateDataLayer()
+{
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            //reset white holes if not present
+            if (dataLayer[y][x]["whiteHoleParticle"] !== null && grid[y][x] != "WHITE_HOLE") {
+                dataLayer[y][x]["whiteHoleParticle"] = null;
+            }
         }
     }
 }
@@ -372,9 +485,20 @@ function drawGrid() {
         }
     }
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(particleCount + " particles - "+version+" version", 10, 15);
+    //datalayer debug
+    /*for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            if (dataLayer[y][x]["whiteHoleParticle"] !== null) {
+                ctx.fillStyle = particleProperties[dataLayer[y][x]["whiteHoleParticle"]]["color"];
+            } else {
+                continue; // Skip empty pixels
+            }
 
+            ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        }
+    }*/
+
+    //movement debug
     /*for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
             if (gridMoved[y][x]===true) {
@@ -386,6 +510,9 @@ function drawGrid() {
             ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
         }
     }*/
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(particleCount + " particles - "+version+" version", 10, 15);
 }
 
 let isTouching = false; // Track touch state
@@ -449,6 +576,7 @@ function drawParticles(x, y) {
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
 function update() {
+    updateDataLayer();
     updateParticles();
     drawGrid();
     requestAnimationFrame(update);
