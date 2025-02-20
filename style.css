@@ -42,6 +42,10 @@ button:hover {
     display: flex;
     flex-direction: column; /* Stacks buttons vertically */
 }
+#particleSelector2 {
+    display: flex;
+    flex-direction: column; /* Stacks buttons vertically */
+}
 
 /* Falling Droplet Style */
 .droplet {

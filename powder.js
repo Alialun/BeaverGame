@@ -1,16 +1,18 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "arsonist"
+const version = "wood"
 
 // Set canvas size
 canvas.width = 504;
 canvas.height = 504;
 
+let fps = 0;
+
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 6;
+const GRID_SIZE = 4;
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
@@ -23,6 +25,38 @@ const particleProperties = {
         powderity: 1,
         diffusionability: 1,
         color: "#000000"
+    },
+    "SAND" : 
+    {
+        falls : true,
+        weight : 112,
+        fluidity: 0.002,
+        powderity: 1,
+        diffusionability: 0.1,
+        color: "#fffb00"
+    },
+    "ROCKS" : 
+    {
+        falls : true,
+        weight : 150,
+        fluidity: 0,
+        powderity: 0.0002,
+        diffusionability: 0.004,
+        color: "#505050",
+        interactions:{
+            "WATER" : function(x, y, otherX, otherY) {
+                if(Math.random() < 0.002) grid[y][x] = "SAND"
+            }
+        }
+    },
+    "WATER" : 
+    {
+        falls : true,
+        weight : 110,
+        fluidity: 1,
+        powderity: 1,
+        diffusionability: 0.6,
+        color: "#3498db"
     },
     "FLAME" : 
     {
@@ -57,30 +91,7 @@ const particleProperties = {
         },
         interactions:{}
     },
-    "SAND" : 
-    {
-        falls : true,
-        weight : 112,
-        fluidity: 0.002,
-        powderity: 1,
-        diffusionability: 0.1,
-        color: "#fffb00"
-    },
-    "ROCKS" : 
-    {
-        falls : true,
-        weight : 150,
-        fluidity: 0,
-        powderity: 0.0002,
-        diffusionability: 0.004,
-        color: "#505050",
-        interactions:{
-            "WATER" : function(x, y, otherX, otherY) {
-                if(Math.random() < 0.002) grid[y][x] = "SAND"
-            }
-        }
-    },
-    "ASH" : 
+    /*"ASH" : 
     {
         falls : true,
         weight : 111,
@@ -88,7 +99,16 @@ const particleProperties = {
         powderity: 1,
         diffusionability: 0.1,
         color: "#909090"
-    },
+    },*/
+    /*"SMOKE" : 
+    {
+        falls : true,
+        weight : 10,
+        fluidity: 1,
+        powderity: 0,
+        diffusionability: 1,
+        color: "#404040"
+    },*/
     "DUST" : 
     {
         falls : true,
@@ -99,19 +119,10 @@ const particleProperties = {
         color:"#c6c7a3",
         flammability: {
             flammability: 0.8,
-            duration: 100,
+            duration: 50,
             volatility: 0.4,
-            ashChance: 0.2,
+            //ashChance: 0,
         }
-    },
-    "WATER" : 
-    {
-        falls : true,
-        weight : 110,
-        fluidity: 1,
-        powderity: 1,
-        diffusionability: 0.6,
-        color: "#3498db"
     },
     "OIL" : 
     {
@@ -125,7 +136,7 @@ const particleProperties = {
             flammability: 1,
             duration: 10,
             volatility: 1,
-            ashChance: 0.2,
+            //ashChance: 0,
         }
     },
     "PETROL" : 
@@ -140,7 +151,7 @@ const particleProperties = {
             flammability: 1,
             duration: 500,
             volatility: 1,
-            ashChance: 0.2,
+            //ashChance: 0,
         }
     },
     "WALL" : 
@@ -254,10 +265,26 @@ const particleProperties = {
             }
         }
     },
+    "WOOD" : 
+    {
+        falls : false,
+        weight : 115,
+        fluidity: 0,
+        powderity: 0,
+        diffusionability: 0,
+        color:"#492000",
+        flammability: {
+            flammability: 0.005,
+            duration: 2000,
+            volatility: 0.05,
+            //ashChance: 0,
+        }
+    },
 }
 
 // Generate radio buttons dynamically
 const selectorDiv = document.getElementById("particleSelector");
+const selector2Div = document.getElementById("particleSelector2");
 let selectedParticle = "SAND"; // Default selection
 
 // Generate buttons dynamically
@@ -282,12 +309,18 @@ for (let type in particleProperties) {
         document.querySelectorAll("#particleSelector button").forEach(btn => {
             btn.style.border = "none";
         });
+        document.querySelectorAll("#particleSelector2 button").forEach(btn => {
+            btn.style.border = "none";
+        });
 
         // Highlight selected button
         this.style.border = "3px solid white";
     });
 
+    if(particleProperties[type]["falls"])
     selectorDiv.appendChild(button);
+    else
+    selector2Div.appendChild(button);
 }
 function getLuminance(hex) {
     // Convert hex to RGB
@@ -526,10 +559,47 @@ function handleFireBehavoir(x,y)
                         }
                     }
                 }
+                if(Math.random() < particleProperties[grid[y][x]]["flammability"]["volatility"])
+                {
+                    if (y + 1 < rows && y + 1 >= 0)
+                    {
+                        if(grid[y+1][x] == "EMPTY")
+                        {
+                            grid[y+1][x] = "FLAME"
+                        }
+                    }
+                }
+                if(Math.random() < particleProperties[grid[y][x]]["flammability"]["volatility"])
+                {
+                    if (x - 1 < cols && x - 1 >= 0)
+                    {
+                        if(grid[y][x-1] == "EMPTY")
+                        {
+                            grid[y][x-1] = "FLAME"
+                        }
+                    }
+                }
+                if(Math.random() < particleProperties[grid[y][x]]["flammability"]["volatility"])
+                {
+                    if (x + 1 < cols && x + 1 >= 0)
+                    {
+                        if(grid[y][x+1] == "EMPTY")
+                        {
+                            grid[y][x+1] = "FLAME"
+                        }
+                    }
+                }
                 dataLayer[y][x]["movingData"]["fire"]["howLong"]+=1;
                 if(dataLayer[y][x]["movingData"]["fire"]["howLong"] > particleProperties[grid[y][x]]["flammability"]["duration"])
                 {
-                    grid[y][x] = "EMPTY";
+                    /*if(Math.random() < particleProperties[grid[y][x]]["flammability"]["ashChance"])
+                    {
+                        grid[y][x] = "ASH";
+                    }
+                    else
+                    {*/
+                        grid[y][x] = "EMPTY";
+                    //}
                     dataLayer[y][x]["movingData"]["fire"]["howLong"] = 0;
                 }
             }
@@ -743,6 +813,7 @@ function drawGrid() {
 
     ctx.fillStyle = "#ffffff";
     ctx.fillText(particleCount + " particles - "+version+" version", 10, 15);
+    ctx.fillText("fps - "+fps, 10, 30);
 }
 
 let isTouching = false; // Track touch state
@@ -842,7 +913,17 @@ function update() {
     updateDataLayer();
     updateParticles();
     drawGrid();
+    countFPS();
 }
 
 // Start the game loop
 setInterval(update,1000/60);
+
+
+let lastTime = performance.now();
+
+function countFPS() {
+    let now = performance.now();
+    fps = Math.round(1000 / (now - lastTime));
+    lastTime = now;
+}
