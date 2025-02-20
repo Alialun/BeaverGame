@@ -99,7 +99,7 @@ const particleProperties = {
         color:"#c6c7a3",
         flammability: {
             flammability: 0.8,
-            duration: 2000,
+            duration: 100,
             volatility: 0.4,
             ashChance: 0.2,
         }
@@ -333,16 +333,19 @@ function swapParticles(x, y, x2, y2, particle, particle2)
 function applyGravity(xx, yy, particleKey)
 {
     if (yy + 1 < rows && yy + 1 >= 0) {
-        let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
-        let otherDiffusionability = particleProperties[grid[yy+1][xx]]["diffusionability"]
-        if(!gridMoved[yy+1][xx] && particleProperties[grid[yy+1][xx]]["weight"] <= particleProperties[particleKey]["weight"])
+        if(grid[yy+1][xx] != particleKey)
         {
-            let diffusionChance = ((thisDiffusionability + otherDiffusionability)/2)*Math.min(thisDiffusionability, otherDiffusionability);
-            if(Math.random() < diffusionChance)
+            let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
+            let otherDiffusionability = particleProperties[grid[yy+1][xx]]["diffusionability"]
+            if(!gridMoved[yy+1][xx] && particleProperties[grid[yy+1][xx]]["weight"] <= particleProperties[particleKey]["weight"])
             {
-                let otherParticle = grid[yy+1][xx];
-                swapParticles(xx,yy,xx,yy+1,particleKey,otherParticle);
-                return true;
+                let diffusionChance = ((thisDiffusionability + otherDiffusionability)/2)*Math.min(thisDiffusionability, otherDiffusionability);
+                if(Math.random() < diffusionChance)
+                {
+                    let otherParticle = grid[yy+1][xx];
+                    swapParticles(xx,yy,xx,yy+1,particleKey,otherParticle);
+                    return true;
+                }
             }
         }
     }
@@ -350,16 +353,19 @@ function applyGravity(xx, yy, particleKey)
     {
 
         if (yy + 1 < rows && yy + 1 >= 0) {
-            if(!gridMoved[yy + 1][xx])
+            if(grid[yy+1][xx] != particleKey)
             {
-                let particleBelow = grid[yy + 1][xx];
-                if(particleProperties[particleBelow]["falls"])
+                if(!gridMoved[yy + 1][xx])
                 {
-                    let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10)*Math.max(particleProperties[particleKey]["fluidity"],particleProperties[particleBelow]["fluidity"]);
-                    if(Math.random() < gravitySwapChance)
+                    let particleBelow = grid[yy + 1][xx];
+                    if(particleProperties[particleBelow]["falls"])
                     {
-                        swapParticles(xx,yy,xx,yy+1,particleKey,particleBelow);
-                        return true;
+                        let gravitySwapChance = ((particleProperties[particleKey]["weight"]-particleProperties[particleBelow]["weight"])/10)*Math.max(particleProperties[particleKey]["fluidity"],particleProperties[particleBelow]["fluidity"]);
+                        if(Math.random() < gravitySwapChance)
+                        {
+                            swapParticles(xx,yy,xx,yy+1,particleKey,particleBelow);
+                            return true;
+                        }
                     }
                 }
             }
@@ -422,16 +428,19 @@ function applyFluidity(xx, yy, particleKey)
         }
         else
         {
-            let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
-            let otherDiffusionability = particleProperties[grid[yy][xx + direction]]["diffusionability"]
-            if(!gridMoved[yy][xx + direction])
+            if(grid[yy][xx + direction] != particleKey)
             {
-                let diffusionChance = ((thisDiffusionability + otherDiffusionability)/2)*Math.min(thisDiffusionability, otherDiffusionability);
-                if(Math.random() < diffusionChance)
+                let thisDiffusionability = particleProperties[particleKey]["diffusionability"]
+                let otherDiffusionability = particleProperties[grid[yy][xx + direction]]["diffusionability"]
+                if(!gridMoved[yy][xx + direction])
                 {
-                    let otherParticle = grid[yy][xx + direction];
-                    swapParticles(xx,yy,xx + direction,yy,particleKey,otherParticle);
-                    return true;
+                    let diffusionChance = ((thisDiffusionability + otherDiffusionability)/2)*Math.min(thisDiffusionability, otherDiffusionability);
+                    if(Math.random() < diffusionChance)
+                    {
+                        let otherParticle = grid[yy][xx + direction];
+                        swapParticles(xx,yy,xx + direction,yy,particleKey,otherParticle);
+                        return true;
+                    }
                 }
             }
         }
@@ -521,6 +530,7 @@ function handleFireBehavoir(x,y)
                 if(dataLayer[y][x]["movingData"]["fire"]["howLong"] > particleProperties[grid[y][x]]["flammability"]["duration"])
                 {
                     grid[y][x] = "EMPTY";
+                    dataLayer[y][x]["movingData"]["fire"]["howLong"] = 0;
                 }
             }
             else
@@ -665,7 +675,7 @@ function updateDataLayer()
                 dataLayer[y][x]["whiteHoleParticle"] = null;
             }
             //reset fire duration if not on fire
-            if (dataLayer[y][x]["movingData"]["fire"]["howLong"] > 0 && !dataLayer[y][x]["movingData"]["fire"]["onFire"]) {
+            if (dataLayer[y][x]["movingData"]["fire"]["howLong"] > 0 && !particleProperties[grid[y][x]]["flammability"]) {
                 dataLayer[y][x]["movingData"]["fire"]["howLong"] = 0;
             }
             if(!particleProperties[grid[y][x]]["flammability"] && dataLayer[y][x]["movingData"]["fire"]["onFire"])
