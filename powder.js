@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "wood"
+const version = "hole strength"
 
 // Set canvas size
 canvas.width = 504;
@@ -174,7 +174,8 @@ const particleProperties = {
         interactions:{
             "ANY" : function(x, y, otherX, otherY) {
                 if(particleProperties[grid[otherY][otherX]]["falls"])
-                    grid[otherY][otherX] = "EMPTY";
+                    if(Math.random() < Math.pow(dataLayer[y][x]["holeSpeed"],2))
+                        grid[otherY][otherX] = "EMPTY";
             }
         }
     },
@@ -193,28 +194,28 @@ const particleProperties = {
                 {
                     if(grid[y+1][x]=="EMPTY")
                     {
-                        if(Math.random() < 0.02) grid[y+1][x] = dataLayer[y][x]["whiteHoleParticle"]
+                        if(Math.random() < Math.pow(dataLayer[y][x]["holeSpeed"],2)) grid[y+1][x] = dataLayer[y][x]["whiteHoleParticle"]
                     }
                 }
                 if (y - 1 < rows && y - 1 >= 0)
                 {
                     if(grid[y-1][x]=="EMPTY")
                     {
-                        if(Math.random() < 0.02) grid[y-1][x] = dataLayer[y][x]["whiteHoleParticle"]
+                        if(Math.random() < Math.pow(dataLayer[y][x]["holeSpeed"],2)) grid[y-1][x] = dataLayer[y][x]["whiteHoleParticle"]
                     }
                 }
                 if (x + 1 < rows && x + 1 >= 0)
                 {
                     if(grid[y][x+1]=="EMPTY")
                     {
-                        if(Math.random() < 0.02) grid[y][x+1] = dataLayer[y][x]["whiteHoleParticle"]
+                        if(Math.random() < Math.pow(dataLayer[y][x]["holeSpeed"],2)) grid[y][x+1] = dataLayer[y][x]["whiteHoleParticle"]
                     }
                 }
                 if (x - 1 < rows && x - 1 >= 0)
                 {
                     if(grid[y][x-1]=="EMPTY")
                     {
-                        if(Math.random() < 0.02) grid[y][x-1] = dataLayer[y][x]["whiteHoleParticle"]
+                        if(Math.random() < Math.pow(dataLayer[y][x]["holeSpeed"],2)) grid[y][x-1] = dataLayer[y][x]["whiteHoleParticle"]
                     }
                 }
             }
@@ -287,6 +288,9 @@ const selectorDiv = document.getElementById("particleSelector");
 const selector2Div = document.getElementById("particleSelector2");
 let selectedParticle = "SAND"; // Default selection
 
+let whiteHoleSliderValue = 0.5;
+let blackHoleSliderValue = 0.5;
+
 // Generate buttons dynamically
 for (let type in particleProperties) {
     const button = document.createElement("button");
@@ -320,7 +324,21 @@ for (let type in particleProperties) {
     if(particleProperties[type]["falls"])
     selectorDiv.appendChild(button);
     else
-    selector2Div.appendChild(button);
+    {
+        selector2Div.appendChild(button);
+        if(type == "WHITE_HOLE")
+        {
+            let slider = getSlider("WHITE_HOLE")
+            selector2Div.appendChild(slider);
+            slider.value = 0.2;
+        }
+        else if(type == "BLACK_HOLE")
+        {
+            let slider = getSlider("BLACK_HOLE")
+            selector2Div.appendChild(slider);
+            slider.value = 1;
+        }
+    }
 }
 function getLuminance(hex) {
     // Convert hex to RGB
@@ -331,6 +349,33 @@ function getLuminance(hex) {
     // Calculate relative luminance (per W3C standard)
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
+function getSlider(particle)
+{
+
+    let slider = document.createElement("input");
+    slider.classList.add("particle-slider");
+    slider.type = "range";
+    slider.id = "slider";
+    slider.min = 0;
+    slider.max = 1;
+    slider.step = 0.1;
+    if(particle=="WHITE_HOLE")
+    {
+        // Update the value display on input change
+        slider.addEventListener("input", () => {
+            whiteHoleSliderValue = slider.value;
+        });
+    }
+    if(particle=="BLACK_HOLE")
+    {
+        slider.addEventListener("input", () => {
+            blackHoleSliderValue = slider.value;
+        });
+    }
+
+    return slider;
+}
+
 
 ////////////// POWDER GAME LOGIC
 
@@ -340,6 +385,7 @@ let gridMoved = new Array(rows).fill().map(() => new Array(cols).fill(false));
 let dataLayer = Array.from({ length: rows }, () => 
     Array.from({ length: cols }, () => ({
       whiteHoleParticle: null,
+      holeSpeed: 0.5,
       movingData:{
         colorVariantRandom: Math.random()*100,
         fire: {
@@ -899,6 +945,14 @@ function drawParticles(x, y) {
             // Ensure newX and newY are within grid bounds
             if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
                 grid[newY][newX] = type;
+                if(type == "WHITE_HOLE")
+                {
+                    dataLayer[newY][newX]["holeSpeed"] = whiteHoleSliderValue;
+                }
+                else if(type == "BLACK_HOLE")
+                {
+                    dataLayer[newY][newX]["holeSpeed"] = blackHoleSliderValue;
+                }
             }
         }
     }

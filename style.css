@@ -124,3 +124,31 @@ canvas
     background: black; 
     display: inline;
 }
+
+/* Style the slider track */
+input[type="range"] {
+    -webkit-appearance: none; /* Remove default styling */
+    margin-top: 8px;
+    margin-left: 10px;
+    margin-bottom: 18px;
+    width: 140px; /* Full width */
+    height: 4px; /* Track thickness */
+    background: #5b5b5b; /* Track color */
+    border-radius: 2px;
+    outline: none;
+}
+
+/* Style the slider thumb (the handle) */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; /* Thumb size */
+    height: 20px; /* Thumb size */
+    background: #c4c4c4; /* Thumb color */
+    border-radius: 40%; /* Makes it circular */
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #ffffff; /* Darker color on hover */
+}
