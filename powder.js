@@ -288,8 +288,8 @@ const selectorDiv = document.getElementById("particleSelector");
 const selector2Div = document.getElementById("particleSelector2");
 let selectedParticle = "SAND"; // Default selection
 
-let whiteHoleSliderValue = 0.5;
-let blackHoleSliderValue = 0.5;
+let whiteHoleSliderValue = 0.2;
+let blackHoleSliderValue = 1;
 
 // Generate buttons dynamically
 for (let type in particleProperties) {
