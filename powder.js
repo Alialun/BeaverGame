@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "precision"
+const version = "PC kill"
 
 // Set canvas size
 canvas.width = 504;
@@ -13,7 +13,7 @@ const FRAME_INTERVAL = 1000/60;
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
 // Grid size
-const GRID_SIZE = 4;
+const GRID_SIZE = 1;
 const cols = canvas.width / GRID_SIZE;
 const rows = canvas.height / GRID_SIZE;
 
