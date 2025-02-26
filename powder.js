@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "hole strength"
+const version = "touch v2"
 
 // Set canvas size
 canvas.width = 504;
@@ -908,8 +908,8 @@ canvas.addEventListener("mousemove", (event) => {
     if (event.buttons === 1) { // Only update if the mouse is held
         lastX = event.offsetX;
         lastY = event.offsetY;
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
         drawParticles(lastX, lastY);
     }
 }, { passive: false });
@@ -946,8 +946,8 @@ canvas.addEventListener("touchmove", (event) => {
         lastX = touch.clientX - canvas.offsetLeft;
         lastY = touch.clientY - canvas.offsetTop;
         drawParticles(lastX, lastY);
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
     }
 }, { passive: false });
 
