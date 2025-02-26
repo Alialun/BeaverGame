@@ -277,8 +277,8 @@ const particleProperties = {
         color:"#492000",
         flammability: {
             flammability: 0.005,
-            duration: 2000,
-            volatility: 0.05,
+            duration: 1000,
+            volatility: 0.2,
             //ashChance: 0,
         }
     },
@@ -412,6 +412,7 @@ let dataLayer = Array.from({ length: rows }, () =>
       movingData:{
         colorVariantRandom: Math.random()*100,
         fire: {
+            fireDurationMulti: Math.random()*0.8 + 0.6,
             onFire: false,
             howLong: 0
         }
@@ -659,7 +660,7 @@ function handleFireBehavoir(x,y)
                     }
                 }
                 dataLayer[y][x]["movingData"]["fire"]["howLong"]+=1;
-                if(dataLayer[y][x]["movingData"]["fire"]["howLong"] > particleProperties[grid[y][x]]["flammability"]["duration"])
+                if(dataLayer[y][x]["movingData"]["fire"]["howLong"] > particleProperties[grid[y][x]]["flammability"]["duration"] * dataLayer[y][x]["movingData"]["fire"]["fireDurationMulti"])
                 {
                     /*if(Math.random() < particleProperties[grid[y][x]]["flammability"]["ashChance"])
                     {
@@ -907,6 +908,8 @@ canvas.addEventListener("mousemove", (event) => {
     if (event.buttons === 1) { // Only update if the mouse is held
         lastX = event.offsetX;
         lastY = event.offsetY;
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
         drawParticles(lastX, lastY);
     }
 }, { passive: false });
@@ -943,6 +946,8 @@ canvas.addEventListener("touchmove", (event) => {
         lastX = touch.clientX - canvas.offsetLeft;
         lastY = touch.clientY - canvas.offsetTop;
         drawParticles(lastX, lastY);
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
     }
 }, { passive: false });
 
@@ -999,7 +1004,7 @@ function update() {
     const delta = timestamp - lastTime;
   
     // Only draw/update if enough time has passed (i.e., limit to FRAME_INTERVAL)
-    if (delta >= FRAME_INTERVAL*0.8) {
+    if (delta >= FRAME_INTERVAL) {
       // Call your update functions
       updateDataLayer();
       updateParticles();
