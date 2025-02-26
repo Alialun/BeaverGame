@@ -1,7 +1,7 @@
 const canvas = document.getElementById("powderCanvas");
 const ctx = canvas.getContext("2d");
 
-const version = "touch v2"
+const version = "precision"
 
 // Set canvas size
 canvas.width = 504;
@@ -961,7 +961,7 @@ canvas.addEventListener("touchend", () => {
 // Function to draw particles
 function drawParticles(x, y) {
     let gridX = Math.floor(x / GRID_SIZE);
-    let gridY = Math.floor(y / GRID_SIZE)-1;
+    let gridY = Math.floor(y / GRID_SIZE);
     let type = selectedParticle;
 
     // Loop over a 3x3 area centered on (gridX, gridY)
