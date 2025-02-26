@@ -43,7 +43,15 @@ const particleProperties = {
         fluidity: 0.002,
         powderity: 1,
         diffusionability: 0.1,
-        color: "#fafafa"
+        color: "#fafafa",
+        interactions:{
+            "ANY" : function(x, y, otherX, otherY) {
+                if(dataLayer[otherY][otherX]["movingData"]["fire"]["onFire"]) grid[y][x] = "WATER"
+            },
+            "WATER" : function(x, y, otherX, otherY) {
+                if(Math.random() < 0.002) grid[y][x] = "WATER"
+            }
+        }
     },
     "ROCKS" : 
     {
