@@ -47,6 +47,13 @@ button:hover {
     flex-direction: column; /* Stacks buttons vertically */
 }
 
+#brushSize
+{
+    align-content: center;
+    flex-direction: column;
+    display: flex;
+}
+
 /* Falling Droplet Style */
 .droplet {
     position: absolute;
@@ -151,4 +158,8 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]::-webkit-slider-thumb:hover {
     background: #ffffff; /* Darker color on hover */
+}
+
+.brushSizeSlider{
+    margin-left: 0 !important;
 }

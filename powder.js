@@ -8,6 +8,7 @@ canvas.width = 504;
 canvas.height = 504;
 
 let fps = 0;
+const FRAME_INTERVAL = 1000/60;
 
 const divisions = [252, 168, 126, 84, 72, 63, 56, 42, 36, 28, 24, 21, 18, 14, 12, 9, 8, 7, 6, 4, 3, 2];
 
@@ -286,6 +287,8 @@ const particleProperties = {
 // Generate radio buttons dynamically
 const selectorDiv = document.getElementById("particleSelector");
 const selector2Div = document.getElementById("particleSelector2");
+const settingsDiv = document.getElementById("settingsDiv");
+const brushSizeDiv = document.getElementById("brushSize");
 let selectedParticle = "SAND"; // Default selection
 
 let whiteHoleSliderValue = 0.2;
@@ -340,6 +343,17 @@ for (let type in particleProperties) {
         }
     }
 }
+
+let brushSize = 2
+let slider = getSlider("BRUSH_SIZE", 1, 10, 1);
+slider.classList.add("brushSizeSlider");
+let brushSizeValueSpan = document.createElement("span");
+brushSizeValueSpan.classList.add("brushSizeValue")
+brushSizeValueSpan.textContent = "Brush size: 2";
+brushSizeDiv.appendChild(brushSizeValueSpan);
+brushSizeDiv.appendChild(slider);
+slider.value = 2;
+
 function getLuminance(hex) {
     // Convert hex to RGB
     let r = parseInt(hex.slice(1, 3), 16);
@@ -349,16 +363,16 @@ function getLuminance(hex) {
     // Calculate relative luminance (per W3C standard)
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
-function getSlider(particle)
+function getSlider(particle, min = 0, max = 1, step = 0.1)
 {
 
     let slider = document.createElement("input");
     slider.classList.add("particle-slider");
     slider.type = "range";
     slider.id = "slider";
-    slider.min = 0;
-    slider.max = 1;
-    slider.step = 0.1;
+    slider.min = min;
+    slider.max = max;
+    slider.step = step;
     if(particle=="WHITE_HOLE")
     {
         // Update the value display on input change
@@ -370,6 +384,15 @@ function getSlider(particle)
     {
         slider.addEventListener("input", () => {
             blackHoleSliderValue = slider.value;
+        });
+    }
+    
+    if(particle=="BRUSH_SIZE")
+    {
+        // Update the value display on input change
+        slider.addEventListener("input", () => {
+            brushSize = slider.value;
+            brushSizeValueSpan.textContent = "Brush size: "+ brushSize;
         });
     }
 
@@ -933,12 +956,13 @@ canvas.addEventListener("touchend", () => {
 // Function to draw particles
 function drawParticles(x, y) {
     let gridX = Math.floor(x / GRID_SIZE);
-    let gridY = Math.floor(y / GRID_SIZE);
+    let gridY = Math.floor(y / GRID_SIZE)-1;
     let type = selectedParticle;
 
     // Loop over a 3x3 area centered on (gridX, gridY)
-    for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
+    
+    for (let dy = -(brushSize-1); dy <= (brushSize-1); dy++) {
+        for (let dx = -(brushSize-1); dx <= (brushSize-1); dx++) {
             let newX = gridX + dx;
             let newY = gridY + dy;
 
@@ -963,21 +987,39 @@ function drawParticles(x, y) {
 // Prevent right-click menu
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
-function update() {
-    updateDataLayer();
-    updateParticles();
-    drawGrid();
-    countFPS();
-}
-
-// Start the game loop
-setInterval(update,1000/60);
-
 
 let lastTime = performance.now();
+function update() {
+    let timestamp = performance.now();
+
+    if (!lastTime) {
+      lastTime = timestamp;
+    }
+  
+    const delta = timestamp - lastTime;
+  
+    // Only draw/update if enough time has passed (i.e., limit to FRAME_INTERVAL)
+    if (delta >= FRAME_INTERVAL*0.8) {
+      // Call your update functions
+      updateDataLayer();
+      updateParticles();
+      drawGrid();
+      countFPS();
+  
+      // Reset lastTime, but account for any extra time that has passed
+      // (helps keep timing in sync, rather than "losing" frame time).
+      lastTime = timestamp - FRAME_INTERVAL;
+    }
+    requestAnimationFrame(update);
+}
+
+
+let lastTimeFps = performance.now();
+// Start the game loop
+requestAnimationFrame(update);
 
 function countFPS() {
     let now = performance.now();
-    fps = Math.round(1000 / (now - lastTime));
-    lastTime = now;
+    fps = Math.round(1000 / (now - lastTimeFps));
+    lastTimeFps = now;
 }
